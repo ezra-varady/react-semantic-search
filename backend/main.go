@@ -44,20 +44,7 @@ func main() {
 		log.Fatal(err)
 	}
 
-	if len(os.Args) < 2 {
-		log.Fatal("Please specify the directory where the react build lives")
-	}
-
-	reactBuildPath := os.Args[1]
-
 	router := mux.NewRouter()
-
-	fs := http.FileServer(http.Dir(reactBuildPath))
-	router.PathPrefix("/static/").Handler(http.StripPrefix("/static/", fs))
-	router.PathPrefix("/").HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		http.ServeFile(w, r, filepath.join(reactBuildPath, "index.html"))
-	})
-
 	router.HandleFunc("/image/{id:[0-9]+}", handleImage)
 	router.HandleFunc("/search/image/", handleSearchImage)
 	router.HandleFunc("/search/text/", handleSearchText)
@@ -91,13 +78,14 @@ func handleImage(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var path string
-	err = db.QueryRow("SELECT location FROM image_table WHERE id = ($1)", idNum).Scan(&path)
+	err = db.QueryRow("SELECT location WHERE id = ($1)", idNum).Scan(&path)
 	if check(err, w, "Error no such ID", http.StatusInternalServerError) {
 		return
 	}
 
 	// TODO mimetype inference if I have time to find/embed a better corpus
 	w.Header().Set("Content-Type", "image/jpeg")
+	w.Header().Set("Access-Control-Allow-Origin", "*")
 	http.ServeFile(w, r, path)
 }
 
@@ -126,6 +114,7 @@ func handleSearchCommon(rows *sql.Rows, w http.ResponseWriter) {
 	}
 
 	w.Header().Set("Content-Type", "application/json")
+	w.Header().Set("Access-Control-Allow-Origin", "*")
 	w.Write(JSONData)
 }
 
@@ -141,13 +130,13 @@ func handleSearchImage(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	file, fileHeader, err := r.FormFile("file")
+	file, fileHeader, err := r.FormFile("image")
 	if check(err, w, "Error reading file", http.StatusBadRequest) {
 		return
 	}
 	defer file.Close()
 
-	tmp, err := os.Create(filepath.Join("/tmp/lantern_semantic", randSeq(5)+filHeader.Filename))
+	tmp, err := os.Create(filepath.Join("/tmp/lantern_semantic", randSeq(5), fileHeader.Filename))
 	if check(err, w, "Error creating file", http.StatusInternalServerError) {
 		return
 	}
@@ -164,7 +153,7 @@ func handleSearchImage(w http.ResponseWriter, r *http.Request) {
 	}
 
 	err = os.Remove(tmp)
-	if check(err, w, "Error removing tmp file", http.StatusInternalServerError) {
+	if check(err, w, "Error removing temp file", http.StatusInternalServerError) {
 		return
 	}
 
