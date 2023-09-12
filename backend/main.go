@@ -5,17 +5,33 @@ import (
 	"encoding/json"
 	"io"
 	"log"
+	"math/rand"
 	"net/http"
 	"os"
 	"path/filepath"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/gorilla/mux"
 	_ "github.com/lib/pq"
 )
 
 var db *sql.DB
+
+func init() {
+	rand.Seed(time.Now().UnixNano())
+}
+
+var letters = []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ")
+
+func randSeq(n int) string {
+	b := make([]rune, n)
+	for i := range b {
+		b[i] = letters[rand.Intn(len(letters))]
+	}
+	return string(b)
+}
 
 func main() {
 	if err := os.MkdirAll("/tmp/lantern_semantic", os.ModePerm); err != nil {
@@ -37,7 +53,10 @@ func main() {
 	router := mux.NewRouter()
 
 	fs := http.FileServer(http.Dir(reactBuildPath))
-	router.Handle("/", http.StripPrefix("/", fs))
+	router.PathPrefix("/static/").Handler(http.StripPrefix("/static/", fs))
+	router.PathPrefix("/").HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		http.ServeFile(w, r, filepath.join(reactBuildPath, "index.html"))
+	})
 
 	router.HandleFunc("/image/{id:[0-9]+}", handleImage)
 	router.HandleFunc("/search/image/", handleSearchImage)
@@ -122,13 +141,13 @@ func handleSearchImage(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	file, _, err := r.FormFile("file")
+	file, fileHeader, err := r.FormFile("file")
 	if check(err, w, "Error reading file", http.StatusBadRequest) {
 		return
 	}
 	defer file.Close()
 
-	tmp, err := os.Create(filepath.Join("/tmp/lantern_semantic", "uploaded_image"))
+	tmp, err := os.Create(filepath.Join("/tmp/lantern_semantic", randSeq(5)+filHeader.Filename))
 	if check(err, w, "Error creating file", http.StatusInternalServerError) {
 		return
 	}
@@ -143,6 +162,12 @@ func handleSearchImage(w http.ResponseWriter, r *http.Request) {
 	if check(err, w, "Error querying index", http.StatusInternalServerError) {
 		return
 	}
+
+	err = os.Remove(tmp)
+	if check(err, w, "Error removing tmp file", http.StatusInternalServerError) {
+		return
+	}
+
 	handleSearchCommon(rows, w)
 }
 
