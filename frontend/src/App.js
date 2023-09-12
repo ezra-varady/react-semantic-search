@@ -37,7 +37,7 @@ function App() {
     return intArray.map((int, index) => (
       <Image
         key={index}
-        src={`http://170.187.170.169:8080/image/${int}`}
+        src={`/api/image/${int}`}
         alt={`Result ${index + 1}`}
         boxSize="150px"
         objectFit="cover"
@@ -60,7 +60,7 @@ function App() {
     const formData = new FormData();
     formData.append('query', query);
     try {
-        const response = await fetch('http://170.187.170.169:8080/search/text/', {
+        const response = await fetch('/api/search/text/', {
         method: 'POST',
         body: formData,
       });
@@ -92,7 +92,7 @@ function App() {
     formData.append('image', file);
   
     try {
-        const response = await fetch('http://170.187.170.169:8080/search/image/', {
+        const response = await fetch('/api/search/image/', {
         method: 'POST',
         body: formData,
       });
@@ -171,7 +171,7 @@ function App() {
               <Carousel
                 currentIndex={currentImage.col}
                 views={recentQueries[currentImage.row].ids.map(id => ({
-                    src: `http://170.187.170.169:8080/image/${id}`,
+                    src: `/api/image/${id}`,
                 }))}
               />
             </div>

@@ -45,9 +45,9 @@ func main() {
 	}
 
 	router := mux.NewRouter()
-	router.HandleFunc("/image/{id:[0-9]+}", handleImage)
-	router.HandleFunc("/search/image/", handleSearchImage)
-	router.HandleFunc("/search/text/", handleSearchText)
+	router.HandleFunc("/api/image/{id:[0-9]+}", handleImage)
+	router.HandleFunc("/api/search/image/", handleSearchImage)
+	router.HandleFunc("/api/search/text/", handleSearchText)
 
 	http.ListenAndServe(":8080", router)
 }
@@ -55,6 +55,7 @@ func main() {
 func check(err error, w http.ResponseWriter, msg string, code int) bool {
 	if err != nil {
 		http.Error(w, msg, code)
+		log.Println(err)
 		return true
 	}
 	return false
