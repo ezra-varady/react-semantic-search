@@ -34,10 +34,11 @@ func main() {
 
 	reactBuildPath := os.Args[1]
 
-	fs := http.FileServer(http.Dir(reactBuildPath))
-	http.Handle("/", http.StripPrefix("/", fs))
-
 	router := mux.NewRouter()
+
+	fs := http.FileServer(http.Dir(reactBuildPath))
+	router.Handle("/", http.StripPrefix("/", fs))
+
 	router.HandleFunc("/image/{id:[0-9]+}", handleImage)
 	router.HandleFunc("/search/image/", handleSearchImage)
 	router.HandleFunc("/search/text/", handleSearchText)
