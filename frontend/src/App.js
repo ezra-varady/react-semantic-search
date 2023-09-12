@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useCallback } from "react";
 import { 
   ChakraProvider,
   Box, 
@@ -7,19 +7,33 @@ import {
   Flex, 
   Text, 
   Image, 
+  Center, 
   theme 
 } from "@chakra-ui/react";
 import { Alert, AlertIcon, AlertTitle, AlertDescription } from '@chakra-ui/react';
 import { SearchIcon, ViewIcon } from "@chakra-ui/icons";
 import { ColorModeSwitcher } from './ColorModeSwitcher';
+import Carousel, { Modal, ModalGateway } from "react-images";
+import './App.css'
 
 function App() {
   const [query, setQuery] = useState("");
-  const [ids, setIds] = useState([3573, 13385, 13322, 13321, 13382, 13379, 13410, 13391, 13381, 13375]);
-  const [lastQuery, setLastQuery] = useState("The cutest dogs you've ever seen");
+  const [recentQueries, setRecentQueries] = useState([{query: 'A funny looking llama', ids:[14989, 14974, 14898, 14920, 14903, 14901, 3334, 14906, 14932, 14938], typ:'text'}]);
   const [error, setError] = useState(null);
+  const [currentImage, setCurrentImage] = useState(null);
+  const [viewerIsOpen, setViewerIsOpen] = useState(false);
 
-  const renderImages = (intArray) => {
+  const openLightbox = useCallback((col, row) => {
+      setCurrentImage({row: row, col: col});
+      setViewerIsOpen(true);
+  }, []);
+
+  const closeLightbox = () => {
+      setCurrentImage(null);
+      setViewerIsOpen(false);
+  };
+
+  const renderImages = (intArray, arrayIndex) => {
     return intArray.map((int, index) => (
       <Image
         key={index}
@@ -27,12 +41,22 @@ function App() {
         alt={`Result ${index + 1}`}
         boxSize="150px"
         objectFit="cover"
+        onClick= { () => openLightbox(index, arrayIndex) }
+        _hover={{ opacity: .8 }}
       />
     ));
   };
 
+  const renderQuery = (query) => {
+    if (query.typ === 'image') {
+      return <Image src={query.query} alt="Searched" boxSize="100px" objectFit="cover" />;
+    } else if (query.typ === 'text') {
+      return query.query;
+    }
+    return null;
+  };
+
   const Search = async () => {
-    setLastQuery(query);
     const formData = new FormData();
     formData.append('query', query);
     try {
@@ -43,13 +67,13 @@ function App() {
   
       if (response.ok) {
         const data = await response.json();
-        setIds(data.ids);
+        setRecentQueries([{ query: query, ids: data.ids, typ:'text' }, ...recentQueries].slice(0, 4));
         setError(null);
       } else {
-        setError('Upload failed');
+        setError('Search failed');
       }
     } catch (error) {
-      setError('There was a problem uploading the file');
+      setError('There was an error submitting your query');
     }
   };
 
@@ -60,11 +84,10 @@ function App() {
 
   const FileChange = async (e) => {
     const file = e.target.files[0];
-    setLastQuery(file.name);
     if (!file) {
       return;
     }
-  
+
     const formData = new FormData();
     formData.append('image', file);
   
@@ -76,13 +99,20 @@ function App() {
   
       if (response.ok) {
         const data = await response.json();
-        setIds(data.ids);
+        const reader = new FileReader();
+
+        // Make url object out of uploaded image so we can use it later
+        reader.onloadend = () => {
+          setRecentQueries([{ query: reader.result, ids: data.ids, typ:'image' }, ...recentQueries].slice(0, 4));
+        };
+        reader.readAsDataURL(file);
+
         setError(null);
       } else {
         setError('Upload failed');
       }
     } catch (error) {
-      setError('Error submitting query');
+      setError('There was an errror uploading your file');
     }
   }; 
 
@@ -113,16 +143,43 @@ function App() {
           </Button>
         </Flex>
   
-        <Text fontSize="xl" marginBottom="1rem">
-          Last query: {lastQuery || "None"}
+        <Text fontSize="xl">
+          Query: { renderQuery(recentQueries[0]) }
         </Text>
   
-        {/* Sample image results - you'd probably map over some state here */}
-        <Flex justifyContent="space-between">
-	  {renderImages(ids)}
+        <Flex justifyContent="space-between" flexWrap="wrap" mt="10">
+	  {renderImages(recentQueries[0].ids, 0)}
         </Flex>
       </Box>
-    </ChakraProvider>
+      <Box padding="5%" mt="8">
+        <Text fontSize="xl">Recent Queries:</Text>
+        {recentQueries.slice(1).map((recentQuery, index) => (
+          <Box key={index} mt="4">
+            <Text fontSize="md">Query: { renderQuery(recentQuery) }
+            </Text>
+            <Flex justifyContent="center" flexWrap="wrap" mt="2">
+              {renderImages(recentQuery.ids, index+1)}
+            </Flex>
+          </Box>
+        ))}
+      </Box>
+      <ModalGateway>
+        {viewerIsOpen && (
+        <Modal onClose={closeLightbox}>
+          <Center>
+            <div className='center-carousel'>
+              <Carousel
+                currentIndex={currentImage.col}
+                views={recentQueries[currentImage.row].ids.map(id => ({
+                    src: `http://170.187.170.169:8080/image/${id}`,
+                }))}
+              />
+            </div>
+        </Center>
+        </Modal>
+        )}
+      </ModalGateway>
+</ChakraProvider>
   );
 }
 
