@@ -28,6 +28,15 @@ func main() {
 		log.Fatal(err)
 	}
 
+	if len(os.Args) < 2 {
+		log.Fatal("Please specify the directory where the react build lives")
+	}
+
+	reactBuildPath := os.Args[1]
+
+	fs := http.FileServer(http.Dir(reactBuildPath))
+	http.Handle("/", http.StripPrefix("/", fs))
+
 	router := mux.NewRouter()
 	router.HandleFunc("/image/{id:[0-9]+}", handleImage)
 	router.HandleFunc("/search/image/", handleSearchImage)
@@ -62,7 +71,7 @@ func handleImage(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var path string
-	err = db.QueryRow("SELECT location WHERE id = ($1)", idNum).Scan(&path)
+	err = db.QueryRow("SELECT location FROM image_table WHERE id = ($1)", idNum).Scan(&path)
 	if check(err, w, "Error no such ID", http.StatusInternalServerError) {
 		return
 	}

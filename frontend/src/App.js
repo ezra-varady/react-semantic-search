@@ -32,7 +32,7 @@ function App() {
     ));
   };
 
-  const Search = () => {
+  const Search = async () => {
     setLastQuery(query);
     const formData = new FormData();
     formData.append('query', query);
@@ -82,7 +82,7 @@ function App() {
         setError('Upload failed');
       }
     } catch (error) {
-      setError('There was a problem uploading the file');
+      setError('Error submitting query');
     }
   }; 
 
