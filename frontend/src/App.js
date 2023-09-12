@@ -10,7 +10,7 @@ import {
   Center, 
   theme 
 } from "@chakra-ui/react";
-import { Alert, AlertIcon, AlertTitle, AlertDescription } from '@chakra-ui/react';
+import { Alert, AlertIcon, AlertTitle, AlertDescription, Spinner } from '@chakra-ui/react';
 import { SearchIcon, ViewIcon } from "@chakra-ui/icons";
 import { ColorModeSwitcher } from './ColorModeSwitcher';
 import Carousel, { Modal, ModalGateway } from "react-images";
@@ -22,6 +22,8 @@ function App() {
   const [error, setError] = useState(null);
   const [currentImage, setCurrentImage] = useState(null);
   const [viewerIsOpen, setViewerIsOpen] = useState(false);
+  const [imageLoading, setImageLoading] = useState(false);
+  const [searchLoading, setSearchLoading] = useState(false);
 
   const openLightbox = useCallback((col, row) => {
       setCurrentImage({row: row, col: col});
@@ -57,6 +59,7 @@ function App() {
   };
 
   const Search = async () => {
+    setSearchLoading(true);
     const formData = new FormData();
     formData.append('query', query);
     try {
@@ -69,11 +72,14 @@ function App() {
         const data = await response.json();
         setRecentQueries([{ query: query, ids: data.ids, typ:'text' }, ...recentQueries].slice(0, 4));
         setError(null);
+        setSearchLoading(false);
       } else {
         setError('Search failed');
+        setSearchLoading(false);
       }
     } catch (error) {
       setError('There was an error submitting your query');
+      setSearchLoading(false);
     }
   };
 
@@ -83,6 +89,7 @@ function App() {
   };
 
   const FileChange = async (e) => {
+    setImageLoading(true);
     const file = e.target.files[0];
     if (!file) {
       return;
@@ -108,11 +115,14 @@ function App() {
         reader.readAsDataURL(file);
 
         setError(null);
+        setImageLoading(false);
       } else {
         setError('Upload failed');
+        setImageLoading(false);
       }
     } catch (error) {
       setError('There was an errror uploading your file');
+      setImageLoading(false);
     }
   }; 
 
@@ -135,10 +145,18 @@ function App() {
             onChange={(e) => setQuery(e.target.value)}
           />
           <Input type="file" id="fileInput" accept="image/*" style={{ display: 'none' }} onChange={FileChange} />
-          <Button marginLeft="1rem" onClick={ImageUpload} leftIcon={<ViewIcon />}>
+          <Button marginLeft="1rem" onClick={ImageUpload} leftIcon={ imageLoading ? (
+              <ViewIcon />
+          ) : (
+              <Spinner size='sm' />
+          )}>
             Upload
           </Button>
-          <Button marginLeft="1rem" onClick={Search} leftIcon={<SearchIcon />}>
+          <Button marginLeft="1rem" onClick={Search} leftIcon={ searchLoading ? (
+              <SearchIcon /> 
+          ) : (
+              <Spinner size='sm' />
+          )}>
             Search
           </Button>
         </Flex>

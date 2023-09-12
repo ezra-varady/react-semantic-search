@@ -1802,7 +1802,7 @@
     "@chakra-ui/react-use-size" "2.1.0"
     "@chakra-ui/react-use-update-effect" "2.1.0"
 
-"@chakra-ui/spinner@2.1.0":
+"@chakra-ui/spinner@2.1.0", "@chakra-ui/spinner@^2.1.0":
   version "2.1.0"
   resolved "https://registry.yarnpkg.com/@chakra-ui/spinner/-/spinner-2.1.0.tgz#aa24a3d692c6ac90714e0f0f82c76c12c78c8e60"
   integrity sha512-hczbnoXt+MMv/d3gE+hjQhmkzLiKuoTo42YhUG7Bs9OSv2lg1fZHW1fGNRFP3wTi6OIbD044U1P9HK+AOgFH3g==
