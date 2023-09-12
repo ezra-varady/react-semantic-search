@@ -15,9 +15,8 @@ import { ColorModeSwitcher } from './ColorModeSwitcher';
 
 function App() {
   const [query, setQuery] = useState("");
-  const [ids, setIds] = useState([]);
-  //const [myArray, setMyArray] = useState([1, 2, 3, 4, 5]);
-  const [lastQuery, setLastQuery] = useState(null);
+  const [ids, setIds] = useState([3573, 13385, 13322, 13321, 13382, 13379, 13410, 13391, 13381, 13375]);
+  const [lastQuery, setLastQuery] = useState("The cutest dogs you've ever seen");
   const [error, setError] = useState(null);
 
   const renderImages = (intArray) => {
@@ -61,6 +60,7 @@ function App() {
 
   const FileChange = async (e) => {
     const file = e.target.files[0];
+    setLastQuery(file.name);
     if (!file) {
       return;
     }

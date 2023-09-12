@@ -78,7 +78,7 @@ func handleImage(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var path string
-	err = db.QueryRow("SELECT location WHERE id = ($1)", idNum).Scan(&path)
+	err = db.QueryRow("SELECT location FROM image_table WHERE id = ($1)", idNum).Scan(&path)
 	if check(err, w, "Error no such ID", http.StatusInternalServerError) {
 		return
 	}
@@ -136,7 +136,8 @@ func handleSearchImage(w http.ResponseWriter, r *http.Request) {
 	}
 	defer file.Close()
 
-	tmp, err := os.Create(filepath.Join("/tmp/lantern_semantic", randSeq(5), fileHeader.Filename))
+	tmpPath := filepath.Join("/tmp/lantern_semantic", randSeq(5)+fileHeader.Filename)
+	tmp, err := os.Create(tmpPath)
 	if check(err, w, "Error creating file", http.StatusInternalServerError) {
 		return
 	}
@@ -147,12 +148,12 @@ func handleSearchImage(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	rows, err := db.Query("SELECT id FROM image_table ORDER BY v <-> clip_image($1) ASC LIMIT 10", tmp)
+	rows, err := db.Query("SELECT id FROM image_table ORDER BY v <-> clip_image($1) ASC LIMIT 10", tmpPath)
 	if check(err, w, "Error querying index", http.StatusInternalServerError) {
 		return
 	}
 
-	err = os.Remove(tmp)
+	err = os.Remove(tmpPath)
 	if check(err, w, "Error removing temp file", http.StatusInternalServerError) {
 		return
 	}
