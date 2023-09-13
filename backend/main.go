@@ -39,7 +39,7 @@ func main() {
 	}
 
 	var err error
-	db, err = sql.Open("postgres", "user=lantern dbname=lantern sslmode=disable password=lantern")
+	db, err = sql.Open("postgres", "user= dbname= sslmode=disable password=")
 	if err != nil {
 		log.Fatal(err)
 	}
