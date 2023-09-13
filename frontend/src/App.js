@@ -146,16 +146,16 @@ function App() {
           />
           <Input type="file" id="fileInput" accept="image/*" style={{ display: 'none' }} onChange={FileChange} />
           <Button marginLeft="1rem" onClick={ImageUpload} leftIcon={ imageLoading ? (
-              <ViewIcon />
-          ) : (
               <Spinner size='sm' />
+          ) : (
+              <ViewIcon />
           )}>
             Upload
           </Button>
           <Button marginLeft="1rem" onClick={Search} leftIcon={ searchLoading ? (
-              <SearchIcon /> 
-          ) : (
               <Spinner size='sm' />
+          ) : (
+              <SearchIcon /> 
           )}>
             Search
           </Button>
