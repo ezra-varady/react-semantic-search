@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from "react";
+import React, { useState, useCallback, useEffect } from "react";
 import { 
   ChakraProvider,
   Box, 
@@ -17,13 +17,14 @@ import Carousel, { Modal, ModalGateway } from "react-images";
 import './App.css'
 
 function App() {
-  const [query, setQuery] = useState("");
-  const [recentQueries, setRecentQueries] = useState([{query: 'A funny looking llama', ids:[14989, 14974, 14898, 14920, 14903, 14901, 3334, 14906, 14932, 14938], typ:'text'}]);
+  const [query, setQuery] = useState("A funny llama");
+  const [recentQueries, setRecentQueries] = useState([]);
   const [error, setError] = useState(null);
   const [currentImage, setCurrentImage] = useState(null);
   const [viewerIsOpen, setViewerIsOpen] = useState(false);
   const [imageLoading, setImageLoading] = useState(false);
   const [searchLoading, setSearchLoading] = useState(false);
+
 
   const openLightbox = useCallback((col, row) => {
       setCurrentImage({row: row, col: col});
@@ -126,6 +127,14 @@ function App() {
     }
   }; 
 
+  useEffect(() => {
+      const runInitialSearch = async () => {
+      setQuery('A funny llama');
+      await Search();
+    };
+    runInitialSearch();
+  }, []);
+
   return (
     <ChakraProvider theme={theme}>
       <Box padding="5%">
@@ -162,11 +171,11 @@ function App() {
         </Flex>
   
         <Text fontSize="xl">
-          Query: { renderQuery(recentQueries[0]) }
+          Query: { recentQueries[0] && renderQuery(recentQueries[0]) }
         </Text>
   
         <Flex justifyContent="space-between" flexWrap="wrap" mt="10">
-	  {renderImages(recentQueries[0].ids, 0)}
+	  {recentQueries[0] && renderImages(recentQueries[0].ids, 0)}
         </Flex>
       </Box>
       <Box padding="5%" mt="8">
