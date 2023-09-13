@@ -62,10 +62,11 @@ systemctl restart nginx
 
 ## Use
 
-If you navigate to the site's address you should see a page Like the one below 
+If you navigate to the site's address you should see a page Like the one below. The llamas won't be there if you don't have a dataset embedded though
 ![Search](images/llama.png)
 
-I have some hard coded values that will break if you don't have the cal-256 embeddings, but future searches will work, if there's interest I can fix this easily. Below are some examples of using the application
+Below are some examples of using the application
+
 
 | | | |
 |:-------------------------:|:-------------------------:|:-------------------------:|
